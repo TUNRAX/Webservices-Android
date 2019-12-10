@@ -1,5 +1,5 @@
 <?php
-include "conexion.php";
+include_once 'conexion.php';
 
 if (!session_id())
     @session_start();
@@ -12,51 +12,18 @@ if (isset($_SESSION['conectado'])) {
 $rol = $conectado['id_rol'];
 if ($conectado == null) {
     header("Location: index.php");
-} else if ($rol == 1) {
+} else if ($rol == 2) {
     session_destroy();
     header("Location: index.php");
 }
 
-$producto = "";
-$medida = "";
-$precio = 0;
-$venta_minima = 0;
-
-if (isset($_POST['guardar'])) {
-    if (isset($_POST['producto'])) {
-        $producto = $_POST['producto'];
-    }
-    if (isset($_POST['medida'])) {
-        $medida = $_POST['medida'];
-    }
-    if (isset($_POST['precio'])) {
-        $precio = $_POST['precio'];
-    }
-    if (isset($_POST['venta_minima'])) {
-        $venta_minima = $_POST['venta_minima'];
-    }
-
-    $id = $conectado['id'];
-    $proveedor = seleccionar_proveedor($id);
-
-    if (isset($_FILES['imagen'])) {
-
-        //almacenamos las propiedades de las imagenes
-        $tmp_name_array = $_FILES['imagen']['tmp_name'];
-
-        //recorremos el array de imagenes para subirlas al simultaneo
-        for ($i = 0; $i < count($tmp_name_array); $i++) {
-            $directorio = $_SERVER['DOCUMENT_ROOT'] .'/img_nose/' . $proveedor['id'] . "_" . $i . ".jpg";
-			//$directorio = '/img_nose/'
-            move_uploaded_file($tmp_name_array[$i], $directorio);
-        }
-    }
-
-    crear_detalle((int) $precio, (int) $venta_minima, $producto, $medida, $proveedor['id']);
-    header("Location: administrar_productos.php");
-    //var_dump($precio,$venta_minima,$producto,$medida,$id);
-}
+$reportes = seleccionar_reportes();
+$reportes_mostrar = 8;
+$filas = count($reportes);
+$paginas = $filas / 8;
+$paginas = ceil($paginas);
 ?>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -84,6 +51,24 @@ if (isset($_POST['guardar'])) {
     <body>
 
         <section id="container" >
+
+            <?php
+            if (!$_GET) {
+                header("Location:administrar_reportes.php?pagina=1");
+            }
+
+            if ($_GET['pagina'] > $paginas) {
+                header("Location:administrar_reportes.php?pagina=" . $paginas . "");
+            }
+            if ($_GET['pagina'] < $paginas) {
+                header("Location:administrar_reportes.php?pagina=1");
+            }
+
+
+            $iniciar = ($_GET['pagina'] - 1) * $reportes_mostrar;
+
+            $reportes_tabla = seleccionar_reportes_li($iniciar, $reportes_mostrar);
+            ?>
             <!-- **********************************************************************************************************************************************************
             TOP BAR CONTENT & NOTIFICATIONS
             *********************************************************************************************************************************************************** -->
@@ -93,7 +78,7 @@ if (isset($_POST['guardar'])) {
                     <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
                 </div>
                 <!--logo start-->
-                <a href="menu_usuario.php" class="logo"><b>Administracion</b></a>
+                <a href="menu_admin.php" class="logo"><b>Administracion</b></a>
                 <!--logo end-->
                 <div class="top-menu">
                     <ul class="nav pull-right top-menu">
@@ -111,17 +96,24 @@ if (isset($_POST['guardar'])) {
                 <div id="sidebar"  class="nav-collapse ">
                     <!-- sidebar menu start-->
                     <ul class="sidebar-menu" id="nav-accordion">
-                        
+
                         <li class="sub-menu">
-                            <a class="active" href="administrar_productos.php">
-                                <i class="fa fa-dashboard"></i>
-                                <span>Mis productos</span>
+                            <a href="administrar_proveedor.php?pagina=1" >
+                                <i class="fa fa-cogs"></i>
+                                <span>Administracion proveedor</span>
+                            </a>
+                        </li>
+
+                        <li class="sub-menu">
+                            <a class="" href="administrar_cliente.php?pagina=1" >
+                                <i class="fa fa-cogs"></i>
+                                <span>Administracion Cliente</span>
                             </a>
                         </li>
                         <li class="sub-menu">
-                            <a href="mis_datos.php" >
+                            <a class="active" href="administrar_reportes.php?pagina=1" >
                                 <i class="fa fa-cogs"></i>
-                                <span>Mis datos</span>
+                                <span>Reportes</span>
                             </a>
                         </li>
                         <!--
@@ -152,56 +144,57 @@ if (isset($_POST['guardar'])) {
             <!--main content start-->
             <section id="main-content">
                 <section class="wrapper">
-
-                    <div class="row" id="contenido">
+                    <div class="container-fluid" id="contenido">
                         <div class="col-lg-9 main-chart" >
-                            <form action="productos.php" method="POST" enctype="multipart/form-data">
+                            <table class="table table-hover table-striped table-responsive">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Titulo</th>
+                                        <th>Descripcion</th>
 
 
-                                <div class="form-group">
-                                    Productos:
-                                    <select class="form-control" name="producto">
-                                        <option>Hualle</option>
-                                        <option>Eucalipto</option>
-                                        <option>Ulmo</option>
-                                        <option>Alamo</option>
-                                        <option>Pino</option>
-                                        <option>Nativo</option>
-                                        <option>Pino</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    Medida:
-                                    <select class="form-control" name="medida">
-                                        <option>Metro</option>
-                                        <option>1/2 Metro</option>
-                                        <option>1/4 Metro</option>
-                                        <option>Saco</option>
-                                        <option>Astilla</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    Precio unitario:
-                                    <input type="number" class="form-control" name="precio" required>
-                                </div>
-                                <div class="form-group">
-                                    Venta minima:
-                                    <input type="number" class="form-control" name="venta_minima" required>
-                                </div>
-                                <div class="form-group">
-                                    Fotos:
-                                    <input type="file" class="form-control" name="imagen[]" multiple id="imagen"  class="btn btn-default"  required>
-                                </div>
+                                    </tr>
+                                </thead>
+                                <?php
+                                foreach ($reportes_tabla as $reportes) {
+                                    $idUsuario = seleccionar_cliente($reportes['idUsuario'])
+                                    ?>
+                                    <tbody>
+                                        <tr>
 
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-sm-6 col-sm-offset-3">
-                                            <input type="submit" name="guardar" class="form-control btn btn-primary" value="Guardar">
-                                        </div>
-                                    </div>
-                                </div>
+                                            <td><?= $idUsuario['nombre'] ?></td>
+                                            <td><?= $reportes['titulo'] ?></td>
+                                            <td><?= $reportes['descripcion'] ?></td>
 
-                            </form>
+                                        </tr>
+                                    </tbody>
+                                    <?php
+                                }
+                                ?>
+
+                            </table>
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+                                    <li class="page-item <?= $_GET['pagina'] <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="administrar_reportes.php?pagina=<?= $_GET['pagina'] - 1 ?>">
+                                            Anterior
+                                        </a>
+                                    </li>
+                                    <?php for ($i = 0; $i < $paginas; $i++): ?>
+                                        <li class="page-item <?= $_GET['pagina'] == $i + 1 ? 'active' : '' ?>">
+                                            <a class="page-link" href="administrar_reportes.php?pagina=<?= $i + 1 ?>">
+                                                <?= $i + 1 ?>
+                                            </a>
+                                        </li>
+                                    <?php endfor ?>
+                                    <li class="page-item  <?= $_GET['pagina'] >= $paginas ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="administrar_reportes.php?pagina=<?= $_GET['pagina'] + 1 ?>">
+                                            Siguiente
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div><!-- /col-lg-9 END SECTION MIDDLE -->
                     </div>
                 </section>
@@ -263,19 +256,10 @@ if (isset($_POST['guardar'])) {
                 var to = $("#" + id).data("to");
                 console.log('nav ' + nav + ' to: ' + to.month + '/' + to.year);
             }
-            /*
-             $('#proveedores').click(function (e) {
-             $.ajax({
-             url: "proveedor.php",
-             method:"POST",
-             dataType: 'html'
-             
-             }).done(function (respuesta){
-             $("#contenido").html(respuesta);
-             });
-             });*/
+
         </script>
 
 
     </body>
 </html>
+

@@ -27,7 +27,6 @@ function seleccionar_imagenes($detalles) {
 	$nombreSelect = array();
     $mysqli = new mysqli("localhost", "root", "", "lenappc1_lenyapp");
 	$ids = array_column($detalles, 'id');
-	
 	$params = implode(',', array_fill(0, count($ids), '?'));
 	if ($mysqli->connect_errno) {
         echo "Falló la conexión con MySQL: (" .
@@ -38,7 +37,6 @@ function seleccionar_imagenes($detalles) {
         foreach($ids as $value)
             $types .= "i";
         $ids = array_merge(array($types),$ids);
-		
         $stmt = $mysqli->prepare('SELECT * FROM img_producto where id_detalle_producto  IN ('.$params.') ');
 		$refArray = array();
         foreach($ids as $key => $value) $refArray[$key] = &$ids[$key];
@@ -54,6 +52,7 @@ function seleccionar_imagenes($detalles) {
 
 $detalles = array();
 $detalles = seleccionar_detalles($idProveedor);
+
 
 
 
