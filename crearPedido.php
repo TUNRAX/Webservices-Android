@@ -16,8 +16,8 @@ function ingresar_historial($verificacionDefault ,$idCliente,$idDetalle,$tipoDeC
         $mysqli->connect_errno . ") " .
         $mysqli->connect_error;
     } else {
-        $stmt = $mysqli->prepare("insert into historial_envio (estado,id_cliente,id_detalle_producto,tipoDeCompra,pagado,cantidad,hora,fecha) VALUES (?,?,?,?,?,?,CURRENT_TIME(),CURDATE())");
-		$stmt->bind_param("iiisii", $verificacionDefault, $idCliente, $idDetalle, $tipoDeCompra, $pagoDefault,$cantidad);
+        $stmt = $mysqli->prepare("insert into historial_envio (estado,id_cliente,id_detalle_producto,tipo_compra_id,pagado,cantidad,hora,fecha) VALUES (?,?,?,?,?,?,CURRENT_TIME(),CURDATE())");
+		$stmt->bind_param("iiiiii", $verificacionDefault, $idCliente, $idDetalle, $tipoDeCompra, $pagoDefault,$cantidad);
         $stmt->execute();
 	}
 }

@@ -1,5 +1,4 @@
 <?php
-include "conexion.php";
 
 if (!session_id())
     @session_start();
@@ -15,46 +14,6 @@ if ($conectado == null) {
 } else if ($rol == 1) {
     session_destroy();
     header("Location: index.php");
-}
-
-$producto = "";
-$medida = "";
-$precio = 0;
-$venta_minima = 0;
-
-if (isset($_POST['guardar'])) {
-    if (isset($_POST['producto'])) {
-        $producto = $_POST['producto'];
-    }
-    if (isset($_POST['medida'])) {
-        $medida = $_POST['medida'];
-    }
-    if (isset($_POST['precio'])) {
-        $precio = $_POST['precio'];
-    }
-    if (isset($_POST['venta_minima'])) {
-        $venta_minima = $_POST['venta_minima'];
-    }
-
-    $id = $conectado['id'];
-    $proveedor = seleccionar_proveedor($id);
-
-    if (isset($_FILES['imagen'])) {
-
-        //almacenamos las propiedades de las imagenes
-        $tmp_name_array = $_FILES['imagen']['tmp_name'];
-
-        //recorremos el array de imagenes para subirlas al simultaneo
-        for ($i = 0; $i < count($tmp_name_array); $i++) {
-            $directorio = $_SERVER['DOCUMENT_ROOT'] .'/img_nose/' . $proveedor['id'] . "_" . $i . ".jpg";
-			//$directorio = '/img_nose/'
-            move_uploaded_file($tmp_name_array[$i], $directorio);
-        }
-    }
-
-    crear_detalle((int) $precio, (int) $venta_minima, $producto, $medida, $proveedor['id']);
-    header("Location: administrar_productos.php");
-    //var_dump($precio,$venta_minima,$producto,$medida,$id);
 }
 ?>
 <!DOCTYPE html>
@@ -111,9 +70,8 @@ if (isset($_POST['guardar'])) {
                 <div id="sidebar"  class="nav-collapse ">
                     <!-- sidebar menu start-->
                     <ul class="sidebar-menu" id="nav-accordion">
-                        
                         <li class="sub-menu">
-                            <a class="active" href="administrar_productos.php">
+                            <a href="administrar_productos.php">
                                 <i class="fa fa-dashboard"></i>
                                 <span>Mis productos</span>
                             </a>
@@ -155,53 +113,7 @@ if (isset($_POST['guardar'])) {
 
                     <div class="row" id="contenido">
                         <div class="col-lg-9 main-chart" >
-                            <form action="productos.php" method="POST" enctype="multipart/form-data">
-
-
-                                <div class="form-group">
-                                    Productos:
-                                    <select class="form-control" name="producto">
-                                        <option>Hualle</option>
-                                        <option>Eucalipto</option>
-                                        <option>Ulmo</option>
-                                        <option>Alamo</option>
-                                        <option>Pino</option>
-                                        <option>Nativo</option>
-                                        <option>Pino</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    Medida:
-                                    <select class="form-control" name="medida">
-                                        <option>Metro</option>
-                                        <option>1/2 Metro</option>
-                                        <option>1/4 Metro</option>
-                                        <option>Saco</option>
-                                        <option>Astilla</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    Precio unitario:
-                                    <input type="number" class="form-control" name="precio" required>
-                                </div>
-                                <div class="form-group">
-                                    Venta minima:
-                                    <input type="number" class="form-control" name="venta_minima" required>
-                                </div>
-                                <div class="form-group">
-                                    Fotos:
-                                    <input type="file" class="form-control" name="imagen[]" multiple id="imagen"  class="btn btn-default"  required>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-sm-6 col-sm-offset-3">
-                                            <input type="submit" name="guardar" class="form-control btn btn-primary" value="Guardar">
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </form>
+                          <h1>Bienvenido al panel de administracion</h1>
                         </div><!-- /col-lg-9 END SECTION MIDDLE -->
                     </div>
                 </section>
@@ -264,16 +176,16 @@ if (isset($_POST['guardar'])) {
                 console.log('nav ' + nav + ' to: ' + to.month + '/' + to.year);
             }
             /*
-             $('#proveedores').click(function (e) {
-             $.ajax({
-             url: "proveedor.php",
-             method:"POST",
-             dataType: 'html'
-             
-             }).done(function (respuesta){
-             $("#contenido").html(respuesta);
-             });
-             });*/
+            $('#proveedores').click(function (e) {
+                $.ajax({
+                   url: "proveedor.php",
+                   method:"POST",
+                   dataType: 'html'
+                   
+                }).done(function (respuesta){
+                    $("#contenido").html(respuesta);
+                });
+            });*/
         </script>
 
 

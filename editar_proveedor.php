@@ -1,8 +1,9 @@
 <?php
-include "conexion.php";
 
 if (!session_id())
     @session_start();
+
+include_once 'conexion.php';
 
 $conectado = null;
 $rol = 0;
@@ -12,55 +13,68 @@ if (isset($_SESSION['conectado'])) {
 $rol = $conectado['id_rol'];
 if ($conectado == null) {
     header("Location: index.php");
-} else if ($rol == 1) {
+} else if ($rol == 2) {
     session_destroy();
     header("Location: index.php");
 }
 
-$producto = "";
-$medida = "";
-$precio = 0;
-$venta_minima = 0;
-
-if (isset($_POST['guardar'])) {
-    if (isset($_POST['producto'])) {
-        $producto = $_POST['producto'];
-    }
-    if (isset($_POST['medida'])) {
-        $medida = $_POST['medida'];
-    }
-    if (isset($_POST['precio'])) {
-        $precio = $_POST['precio'];
-    }
-    if (isset($_POST['venta_minima'])) {
-        $venta_minima = $_POST['venta_minima'];
-    }
-
-    $id = $conectado['id'];
+if (isset($_GET['proveedor'])) {
+    $id = $_GET['proveedor'];
     $proveedor = seleccionar_proveedor($id);
+}
 
-    if (isset($_FILES['imagen'])) {
+$id = 0;
+$nombre = "";
+$apellido = "";
+$nombre_empresa = "";
+$rut = "";
+$direccion = "";
+$ciudad = "";
+$fono1 = "";
+$fono2 = "";
+$activo = 0;
 
-        //almacenamos las propiedades de las imagenes
-        $tmp_name_array = $_FILES['imagen']['tmp_name'];
+if (isset($_POST['editar'])) {
 
-        //recorremos el array de imagenes para subirlas al simultaneo
-        for ($i = 0; $i < count($tmp_name_array); $i++) {
-            $directorio = $_SERVER['DOCUMENT_ROOT'] .'/img_nose/' . $proveedor['id'] . "_" . $i . ".jpg";
-			//$directorio = '/img_nose/'
-            move_uploaded_file($tmp_name_array[$i], $directorio);
-        }
+    if (isset($_POST['id'])) {
+        $id = $_POST['id'];
     }
-
-    crear_detalle((int) $precio, (int) $venta_minima, $producto, $medida, $proveedor['id']);
-    header("Location: administrar_productos.php");
-    //var_dump($precio,$venta_minima,$producto,$medida,$id);
+    if (isset($_POST['nombre'])) {
+        $nombre = $_POST['nombre'];
+    }
+    if (isset($_POST['apellido'])) {
+        $apellido = $_POST['apellido'];
+    }
+    if (isset($_POST['nombre_empresa'])) {
+        $nombre_empresa = $_POST['nombre_empresa'];
+    }
+    if (isset($_POST['rut'])) {
+        $rut = $_POST['rut'];
+    }
+    if (isset($_POST['direccion'])) {
+        $direccion = $_POST['direccion'];
+    }
+    if (isset($_POST['ciudad'])) {
+        $ciudad = $_POST['ciudad'];
+    }
+    if (isset($_POST['fono1'])) {
+        $fono1 = $_POST['fono1'];
+    }
+    if (isset($_POST['fono2'])) {
+        $fono2 = $_POST['fono2'];
+    }
+    if (isset($_POST['estado'])) {
+        $activo = $_POST['estado'];
+    }
+        editar_proveedor($nombre, $apellido,$rut, $nombre_empresa, $direccion, $fono1, $activo, $fono2, $ciudad, $id);
+        header("Location: administrar_proveedor.php?pagina=1");
 }
 ?>
+
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="Dashboard">
@@ -93,7 +107,7 @@ if (isset($_POST['guardar'])) {
                     <div class="fa fa-bars tooltips" data-placement="right" data-original-title="Toggle Navigation"></div>
                 </div>
                 <!--logo start-->
-                <a href="menu_usuario.php" class="logo"><b>Administracion</b></a>
+                <a href="menu_admin.php" class="logo"><b>Administracion</b></a>
                 <!--logo end-->
                 <div class="top-menu">
                     <ul class="nav pull-right top-menu">
@@ -111,17 +125,24 @@ if (isset($_POST['guardar'])) {
                 <div id="sidebar"  class="nav-collapse ">
                     <!-- sidebar menu start-->
                     <ul class="sidebar-menu" id="nav-accordion">
-                        
+
                         <li class="sub-menu">
-                            <a class="active" href="administrar_productos.php">
-                                <i class="fa fa-dashboard"></i>
-                                <span>Mis productos</span>
+                            <a class="active" href="administrar_proveedor.php?pagina=1" >
+                                <i class="fa fa-cogs"></i>
+                                <span>Administracion proveedor</span>
                             </a>
                         </li>
+
                         <li class="sub-menu">
-                            <a href="mis_datos.php" >
+                            <a href="administrar_cliente.php?pagina=1" >
                                 <i class="fa fa-cogs"></i>
-                                <span>Mis datos</span>
+                                <span>Administracion Cliente</span>
+                            </a>
+                        </li>
+                      <li class="sub-menu">
+                            <a class="" href="administrar_reportes.php?pagina=1" >
+                                <i class="fa fa-cogs"></i>
+                                <span>Reportes</span>
                             </a>
                         </li>
                         <!--
@@ -155,52 +176,59 @@ if (isset($_POST['guardar'])) {
 
                     <div class="row" id="contenido">
                         <div class="col-lg-9 main-chart" >
-                            <form action="productos.php" method="POST" enctype="multipart/form-data">
+                            <form action="editar_proveedor.php" method="POST">
 
-
+                                <input type="hidden" name="id" value="<?= $proveedor['id'] ?>"/>
                                 <div class="form-group">
-                                    Productos:
-                                    <select class="form-control" name="producto">
-                                        <option>Hualle</option>
-                                        <option>Eucalipto</option>
-                                        <option>Ulmo</option>
-                                        <option>Alamo</option>
-                                        <option>Pino</option>
-                                        <option>Nativo</option>
-                                        <option>Pino</option>
+                                    Nombre:
+                                    <input id="nombre" type="text" name="nombre" class="form-control" required value="<?= $proveedor['nombre'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Apellido:
+                                    <input id="apellido" type="text" name="apellido" class="form-control" required value="<?= $proveedor['apellido'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Nombre empresa:
+                                    <input id="nombre_empresa" type="text" name="nombre_empresa" class="form-control" required value="<?= $proveedor['nombre_empresa'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Rut:
+                                    <input id="rut" type="text" id="rut" name="rut" class="form-control" oninput="checkRut(this)" required value="<?= $proveedor['rut'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Dirección:
+                                    <input id="direccion" type="text" name="direccion" class="form-control" required value="<?= $proveedor['direccion'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Ciudad:
+                                    <select id="ciudad" required class="form-control" name="ciudad">
+                                        <option value=""></option>
+                                        <option value="Osorno">Osorno</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    Medida:
-                                    <select class="form-control" name="medida">
-                                        <option>Metro</option>
-                                        <option>1/2 Metro</option>
-                                        <option>1/4 Metro</option>
-                                        <option>Saco</option>
-                                        <option>Astilla</option>
+                                    Fono:
+                                    <input id="fono1" type="number" name="fono1" class="form-control" placeholder="+56987654321" required value="<?= $proveedor['fono1'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Fono (opcional):
+                                    <input id="fono2" type="number" name="fono2" class="form-control" placeholder="+56987654321" value="<?= $proveedor['fono2'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    Estado:
+                                    <select class="form-control" required name="estado">
+                                        <option value="1">Activo</option>
+                                        <option value="0">Inactivo</option>
                                     </select>
-                                </div>
-                                <div class="form-group">
-                                    Precio unitario:
-                                    <input type="number" class="form-control" name="precio" required>
-                                </div>
-                                <div class="form-group">
-                                    Venta minima:
-                                    <input type="number" class="form-control" name="venta_minima" required>
-                                </div>
-                                <div class="form-group">
-                                    Fotos:
-                                    <input type="file" class="form-control" name="imagen[]" multiple id="imagen"  class="btn btn-default"  required>
                                 </div>
 
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-sm-6 col-sm-offset-3">
-                                            <input type="submit" name="guardar" class="form-control btn btn-primary" value="Guardar">
+                                            <input type="submit" name="editar" class="form-control btn btn-primary" value="Guardar cambios">
                                         </div>
                                     </div>
                                 </div>
-
                             </form>
                         </div><!-- /col-lg-9 END SECTION MIDDLE -->
                     </div>
@@ -263,17 +291,6 @@ if (isset($_POST['guardar'])) {
                 var to = $("#" + id).data("to");
                 console.log('nav ' + nav + ' to: ' + to.month + '/' + to.year);
             }
-            /*
-             $('#proveedores').click(function (e) {
-             $.ajax({
-             url: "proveedor.php",
-             method:"POST",
-             dataType: 'html'
-             
-             }).done(function (respuesta){
-             $("#contenido").html(respuesta);
-             });
-             });*/
         </script>
 
 

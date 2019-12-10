@@ -5,7 +5,6 @@ $apellido = $_REQUEST['apellido'];
 $rut = $_REQUEST['rut'];
 $direccion = $_REQUEST['direccion'];
 $fono = $_REQUEST['fono'];
-$ciudad = $_REQUEST['ciudad'];  
 $correo = $_REQUEST['correo'];
 $contrasenya = $_REQUEST['contrasenya'];
 $contrasenyaEncriptada = sha1($contrasenya);
@@ -31,8 +30,8 @@ if ($mysqli->connect_errno) {
     
     //cliente
     
-    $stmt = $mysqli->prepare("insert into cliente (nombre,apellido,rut,direccion,fono,ciudad,id_usuario) values (?,?,?,?,?,?,?)");
-    $stmt->bind_param("ssssssi", $nombre, $apellido, $rut, $direccion, $fono, $ciudad, $id);
+    $stmt = $mysqli->prepare("insert into cliente (nombre,apellido,rut,direccion,fono, id_usuario) values (?,?,?,?,?,?)");
+    $stmt->bind_param("ssssssi", $nombre, $apellido, $rut, $direccion, $fono, $id);
     $stmt->execute();
     
     $stmt = $mysqli->prepare("select * from cliente where id_usuario = ?");
